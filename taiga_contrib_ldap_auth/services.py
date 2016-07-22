@@ -59,7 +59,7 @@ def ldap_login_func(request):
         email, full_name = connector.login(username=username, password=password)
         user = ldap_register(username=username, email=email, full_name=full_name)
         data = make_auth_response_data(user)
-    except LDAPLoginError:
+    except connector.LDAPLoginError:
         user = get_and_validate_user(username=username, password=password)
         data = make_auth_response_data(user)
         
