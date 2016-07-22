@@ -20,6 +20,7 @@ from django.apps import apps
 from taiga.base.utils.slug import slugify_uniquely
 from taiga.auth.services import make_auth_response_data
 from taiga.auth.signals import user_registered as user_registered_signal
+from taiga.users.services import get_and_validate_user
 
 from . import connector
 
@@ -54,7 +55,12 @@ def ldap_login_func(request):
     username = request.DATA.get('username', None)
     password = request.DATA.get('password', None)
 
-    email, full_name = connector.login(username=username, password=password)
-    user = ldap_register(username=username, email=email, full_name=full_name)
-    data = make_auth_response_data(user)
+    try:
+        email, full_name = connector.login(username=username, password=password)
+        user = ldap_register(username=username, email=email, full_name=full_name)
+        data = make_auth_response_data(user)
+    except LDAPLoginError:
+        user = get_and_validate_user(username=username, password=password)
+        data = make_auth_response_data(user)
+        
     return data
